@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+p.a {
+  white-space: pre;
+  color: white;
+}
+</style>
+
+<body style="background-color:#072b69;">
+
+<canvas id="myCanvas" onload = 'move()' onclick = "clickfunc()" width="1600" height="800" style=" padding-left: 0;
+	
+    margin-left: auto;
+    margin-right: auto;
+	margin-top: 0px;
+    display: block;border:2px solid black;">
+</canvas>
+
+</body>
+
+
+<script>
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+ctx.font = "16px Arial";
+
+var wscreen = window.innerWidth;
+var hscreen = window.innerHeight;
+
+var initialw = wscreen; 
+var initialh = hscreen; 
+
+canvas.width = wscreen
+canvas.height = canvas.width/2;
+
+//Scaling
+while (canvas.height > initialh-90){
+	canvas.height-=1; 
+	canvas.width-=2;
+}
+
+//Correct for small width
+while (wscreen - canvas.width < 30){
+	canvas.height-=1; 
+	canvas.width-=2;
+}
+
+
+ctx.scale(canvas.width/800,canvas.height/400);
+
+window.onresize = function(event) {
+	wscreen = window.innerWidth;
+	hscreen = window.innerHeight;
+
+	initialw = wscreen; 
+	initialh = hscreen; 
+
+canvas.width = wscreen
+canvas.height = canvas.width/2;
+
+//Scaling
+while (canvas.height > initialh-90){
+	canvas.height-=1; 
+	canvas.width-=2;
+}
+
+//Correct for small width
+while (wscreen - canvas.width < 30){
+	canvas.height-=1; 
+	canvas.width-=2;
+}
+
+ctx.scale(canvas.width/800,canvas.height/400);
+}
+var canvasX = 0; 
+var canvasY = 0; 
+canvas.addEventListener("mousemove", function(e) { 
+    var cRect = canvas.getBoundingClientRect();              // Gets the CSS positions along with width/height
+    canvasX = e.clientX - cRect.left;			// Subtract the 'left' of the canvas from the X/Y
+    canvasY = e.clientY - cRect.top;         	// positions to get make (0,0) the top left of the
+	canvasX=Math.round(canvasX/(canvas.width/800));
+	canvasY=Math.round(canvasY/(canvas.height/400));
+});
+
+//Defaults------------------------------
+var fps = 60;
+var rrate = Math.round(1000/fps);
+var myVar = setInterval(move,rrate);
+var myVar2 = setInterval(outprint,20); 
+var guion = 1; 
+
+var scene = "main"; var focus = "main";
+var state = 0; var stateM = 0; var stateDelay = 0; var stateTimer = 0;
+ 
+var printout = ""; 
+var fade = 0; var sendScene = "";  var fadeTimer = 0; var fadeState = 0;  var changeFrame = 10; var maxFrame = 14; fadeImage = new Image(100, 200);
+var errormsgshow = 0; var errorTimer = 0; var errormsg = ""; var errortextsize = 30; var errorLast = 40; errorImage = new Image(100, 200);
+
+var nodown = 0;
+function clickfunc(){
+
+if (canvasY>259){
+	for (let i = 0; i < 32; i++){
+		if (canvasX > 0+25.05*i && canvasX < 25.05+25.05*i){
+			knum=i+1;
+		}
+	}
+	for (let z = 0; z < 5; z++){for (let i = 0; i < 3; i++){
+		if (canvasX > 115+27*i+175*z&&canvasX<133+27*i+175*z&&canvasY<360){
+			knum=-1*(i+5)-z*7;
+		}
+	}}
+	for (let z = 0; z < 5; z++){for (let i = 0; i < 2; i++){
+		if (canvasX > 40+27*i+175*z && canvasX < 57+27*i+175*z &&canvasY < 360){
+			knum=-(2+i+z*7);
+		}
+	}}
+	
+	ksel = kArray[31+knum]; ksA.push(knum); ksAT.push(15);
+	if (knum>=0){for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(275+(knum-12)*25.2,290+(knum-12)*25.2),255,1));}}
+	else{for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(280+(-1*knum-11.5)*25.2,290+(-1*knum-11.5)*25.2),255,2));}}
+	if (knum>=0){var audio = new Audio('piano/' + ksel + '.mp3');}
+	else{var audio = new Audio('piano/' + ksel.charAt(0) + "S" + ksel.charAt(2) + '.mp3');}
+	audio.play();
+}
+
+nodown = 0;
+}//End clickfunc
+
+var block = function(x,y,w,h) {
+	this.x = x;
+	this.y = y; 
+	this.w = w; 
+	this.h = h; 
+}
+block.prototype.draw = function() {
+
+}
+
+var fxspeck = function(x,y,type) {
+	this.id = specA.length; 
+	
+	this.x=x; 
+	this.y=y; 
+	
+	this.v = 18;
+	this.vx=randInt(-100,100)/1000;
+	this.vy=-1*this.v;
+	
+	this.size=randInt(4,6);
+	this.dTimer=randInt(0,8);
+	this.aTimer=100;
+	
+	this.type=type;
+}
+fxspeck.prototype.draw = function() {
+	if (this.dTimer>0){this.dTimer-=1;}
+	if (this.dTimer==0){
+	if (this.aTimer>0){this.aTimer-=1;}
+	ctx.globalAlpha=this.aTimer/100;
+	if (this.type==1){ctx.drawImage(fspeck,this.x,this.y,this.size,this.size+(250-this.y));}
+	if (this.type==2){ctx.drawImage(fspeckD,this.x,this.y,this.size,this.size+(250-this.y));}
+	ctx.globalAlpha=1;
+	this.x+=this.vx; this.y+=this.vy;
+	}
+}
+var specA = [];
+//for (let i = 0; i < 1000; i++){specA.push(new fxspeck());}
+
+var fxtrail = function(key) {
+	this.key = key; 
+	this.timer = 0; 
+	this.fImage = new Image();
+}
+fxtrail.prototype.draw = function() {
+	if (this.key!=0&&this.timer <= 14){this.timer++;}
+	if (this.timer>14){this.timer=0; this.key=0;}
+	
+	if (this.timer>0){
+		if (this.key>=0){
+			this.fImage.src = "fx/smoke/" + String(this.timer) + ".png";
+			ctx.drawImage(this.fImage,3+25.2*(this.key-12),0,800,400);
+		}
+		else{
+			this.fImage.src = "fx/smoke/" + String(this.timer) + ".png";
+			ctx.drawImage(this.fImage,123+25*(-1*this.key-12),0,500,400);
+		}
+	}
+}
+var fxA = [];
+//fxA.push(new fxtrail(0));
+
+var knum = 0; var ksel = ""; var ksA = []; var ksAT = []; var ksTimer=0;
+var kArray = ["DS6","CS6",
+			  "","AS5","GS5","FS5","","DS5","CS5",
+			  "","AS4","GS4","FS4","","DS4","CS4",
+			  "","AS3","GS3","FS3","","DS3","CS3",
+			  "","AS2","GS2","FS2","","DS2","CS2","", //-1
+			  "","B1","C2","D2","E2","F2","G2","A2","B2",
+			  "C3","D3","E3","F3","G3","A3","B3",
+			  "C4","D4","E4","F4","G4","A4","B4",
+			  "C5","D5","E5","F5","G5","A5","B5",
+			  "C6","D6","E6","F6","G6","A6","B6"];
+			  
+
+
+function move() {
+//BG
+ctx.fillStyle = "white";
+ctx.fillRect(0,0,800,400);
+
+ctx.drawImage(BGimg,0,0,800,400);
+
+for (let i = 0; i < 32; i++){ctx.drawImage(wkey,-1+25.05*i,1,800,400);}
+
+if (ksA.length>0){
+	for (let i = 0; i < ksA.length; i++){
+		if (ksA[i]>=0&&ksAT[i]>0){ksAT[i]-=1;}
+		if (ksA[i]>=0&&ksAT[i]>0){
+			ctx.drawImage(wkeyS,-1+25.05*(ksA[i]-1),1,800,400);
+		}
+	}
+}
+
+for(var i = 0; i < fxA.length ; i++) {fxA[i].draw();}
+
+
+for (let i = 0; i < 6; i++){
+	ctx.drawImage(bkey,25.1*-3-1+25.1*0+175.7*i,1,800,400);
+	ctx.drawImage(bkey,25.1*-3-1+25.1*1+175.7*i,1,800,400);
+	if (i!=0){ctx.drawImage(bkey,25.1*-3-1+25.1*2+175.7*i,1,800,400);}
+
+	ctx.drawImage(bkey,25.1*-3-1+25.1*4+175.7*i,1,800,400);
+	ctx.drawImage(bkey,25.1*-3-1+25.1*5+175.7*i,1,800,400);
+}
+
+if (ksA.length>0){
+	for (let i = 0; i < ksA.length; i++){
+		if (ksA[i]<0&&ksAT[i]>0){ksAT[i]-=1;}
+		if (ksA[i]<0&&ksAT[i]>0){
+			ctx.drawImage(bkeyS,-1+25.1*(1+ksA[i])*-1,1,800,400);
+		}
+	}
+}
+
+if (ksA.length>0){
+	if (ksAT[0]==0){ksAT.shift(); ksA.shift();}
+}
+
+//Labels
+ctx.font = "700 12px Verdana"; ctx.fillStyle = "black"; ctx.textAlign = "center";
+ctx.fillText("C2",37,389);
+ctx.fillText("C4",287+100,389);
+ctx.fillText("C3",112+100,389);
+ctx.fillText("C5",287+100+175.5,389);
+ctx.fillText("C6",287+100+175.5*2,389);
+
+for(var i = 0; i < specA.length ; i++) {specA[i].draw();}
+
+
+//if (state < stateM){if (stateM - state <= 1){state = stateM;}else{state+=(stateM-state)/(5);}}	
+//if (state > stateM){if (state - stateM <= 1){state = stateM;}else{state-=(state-stateM)/(5);}}
+
+ctx.drawImage(outline,0,0,800,400);
+
+//Errormsg
+if (errormsgshow == 1){errorTimer+=1;if (errorTimer < 8){errorImage.src = 'fade/error' + String(Math.floor(errorTimer)) + '.png'; ctx.drawImage(errorImage,0,0,800,400);}else{ctx.drawImage(error8,0,0,800,400); ctx.font = "900 " + String(errortextsize) + "px Arial"; ctx.fillStyle = "black"; ctx.textAlign = "center"; ctx.fillText(errormsg,400,210);}	if (errorTimer > errorLast){errormsgshow = 2; errorTimer = 8;}}
+if (errormsgshow == 2){errorTimer-=0.7;if (errorTimer > 1){errorImage.src = 'fade/error' + String(Math.floor(errorTimer)) + '.png'; ctx.drawImage(errorImage,0,0,800,400);}else{errormsgshow = 0; errorTimer = 0;}}
+
+//Transition
+if (fade == 1){fadeTimer += 0.5;if (fadeTimer > changeFrame){scene = sendScene;}if (fadeTimer > maxFrame){fadeTimer = 0; fade = 0;}if (fadeTimer < 10 && fadeTimer >= 1){fadeImage.src = 'fade/fadeanim/000' + String(Math.floor(fadeTimer)) + '.png';}if (fadeTimer >= 10){fadeImage.src = 'fade/fadeanim/00' + String(Math.floor(fadeTimer)) + '.png';}ctx.drawImage(fadeImage,0,0,800,400);}
+
+//GUI Visual
+if (guion == 1){
+	if (guiA[0] == "B" && guiA[1] != "B" && guiA[1] != "V"){ctx.lineWidth = 2; ctx.strokeStyle = "red"; ctx.strokeRect(sptArray[0],sptArray[1], canvasX - sptArray[0], canvasY - sptArray[1]);}
+	if (guiA[1] == "B" || guiA[1] == "V"){ctx.strokeStyle = "red";ctx.strokeRect(sptArray[0],sptArray[1], sptArray[2] - sptArray[0], sptArray[3] - sptArray[1]);}if (guiA[0] == "D" && guiA[1] != "X" && guiA[1] != "Y" && guiA[1] != "D"){ctx.fillStyle = "blue"; ctx.fillRect(sptArray[0]-4,sptArray[1]-4,8,8);ctx.strokeStyle = "blue"; ctx.lineWidth = 2;ctx.beginPath();ctx.moveTo(sptArray[0]-4, sptArray[1]-4); ctx.lineTo(canvasX,canvasY);ctx.stroke();}
+	if (guiA[0] == "D" && guiA[1] == "X" || guiA[0] == "D" && guiA[1] == "Y" || guiA[0] == "D" && guiA[1] == "D"){ctx.strokeStyle = "blue"; ctx.lineWidth = 2;ctx.beginPath();ctx.moveTo(sptArray[0]-4, sptArray[1]-4);ctx.lineTo(sptArray[2], sptArray[3]);ctx.stroke();ctx.fillStyle = "blue"; ctx.fillRect(sptArray[0]-4,sptArray[1]-4,8,8); ctx.fillRect(sptArray[2]-4,sptArray[3]-4,8,8);}
+	if (guiA[0] == "T"){if (guiA[1] == "T"){ctx.font = "700 " + String(guifontsize) + "px Arial"; ctx.fillStyle = "black"; ctx.textAlign = "center";ctx.fillText("This is sample text",sptArray[0],sptArray[1]);}else if (guiA[1] == "W"){ctx.font = "700 " + String(guifontsize) + "px Arial"; ctx.fillStyle = "black"; ctx.textAlign = "center"; wrapText("this is text that should be wrapped okay it should lol okay", sptArray[0],sptArray[1],300,30,"OFF");}else{ctx.font = "700 " + String(guifontsize)+ "px Arial"; ctx.fillStyle = "black"; ctx.textAlign = "center";ctx.fillText("This is sample text",canvasX,canvasY);}}
+	if (guiA[0] == "I"){if (guiA[1] == "I"){ctx.fillStyle = "#ff99ff";ctx.fillRect(sptArray[0],sptArray[1],sptArray[2] - sptArray[0],sptArray[3] - sptArray[1]);}else{ctx.fillStyle = "#ff99ff";ctx.fillRect(sptArray[0],sptArray[1],canvasX - sptArray[0],canvasY - sptArray[1]);}}
+	if (guiA[0] == "W" && guiA[1] == "1"){
+		if (guiA[4] == "1"){
+			ctx.fillStyle = "#dda8f7";
+			ctx.fillRect(sptArray[0],sptArray[1],sptArray[2]-sptArray[0],sptArray[5]-sptArray[3]);
+			ctx.fillRect(sptArray[0]+(sptArray[6]-sptArray[0]),sptArray[1],sptArray[2]-sptArray[0],sptArray[5]-sptArray[3]);
+			ctx.fillRect(sptArray[0]+(sptArray[6]-sptArray[0])*2,sptArray[1],sptArray[2]-sptArray[0],sptArray[5]-sptArray[3]);
+			ctx.fillRect(sptArray[0]+(sptArray[6]-sptArray[0])*3,sptArray[1],sptArray[2]-sptArray[0],sptArray[5]-sptArray[3]);
+			ctx.fillRect(sptArray[0]+(sptArray[6]-sptArray[0])*4,sptArray[1],sptArray[2]-sptArray[0],sptArray[5]-sptArray[3]);
+			ctx.fillRect(sptArray[0]+(sptArray[6]-sptArray[0])*5,sptArray[1],sptArray[2]-sptArray[0],sptArray[5]-sptArray[3]);
+			ctx.fillRect(sptArray[0]+(sptArray[6]-sptArray[0])*6,sptArray[1],sptArray[2]-sptArray[0],sptArray[5]-sptArray[3]);
+			ctx.fillRect(sptArray[0]+(sptArray[6]-sptArray[0])*7,sptArray[1],sptArray[2]-sptArray[0],sptArray[5]-sptArray[3]);
+		}
+	}
+}
+
+
+}//End of FUNCTION
+
+var demo1ext = ""; var demo2ext = "";
+function outprint() {
+	//Demo 1 & 2
+	demo1ext=" |knum: " + knum + " |ksel: " + ksel + " |ksA: " + ksA + " |ksAT: " + ksAT;
+	if (guion == 1){document.getElementById("demo1").innerHTML = "|X: " + canvasX + "| Y: " + canvasY + "| Scene: " + scene; document.getElementById("demo1").innerHTML += demo1ext;}
+	if (guion == 1){document.getElementById("demo2").innerHTML = ""; document.getElementById("demo2").innerHTML += demo2ext;}
+	
+	//Print Out
+	document.getElementById("textprint").innerHTML = printout; 
+}
+
+function copytoclipboard(text) {const elem = document.createElement('textarea');elem.value = text;document.body.appendChild(elem);elem.select();document.execCommand('copy');document.body.removeChild(elem);}
+
+function randInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+getD=function(x1,y1,x2,y2){ 
+  if(!x2) x2=0; 
+  if(!y2) y2=0;
+  return Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)); 
+}
+var customFloor = function(value, roundTo) {
+    return Math.floor(value / roundTo) * roundTo;
+}
+var customCeil = function(value, roundTo) {
+    return Math.ceil(value / roundTo) * roundTo;
+}
+function shuffle(array) {
+  let currentIndex = array.length,  randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex != 0) {
+
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
+}
+function bishuffle(array,array2) {
+  let currentIndex = array.length,  randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex != 0) {
+
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+	  
+	[array2[currentIndex], array2[randomIndex]] = [
+      array2[randomIndex], array2[currentIndex]];
+  }
+
+  return array;
+  return array2;
+}
+function ditract(srcArray,array,array2){
+	for (let i = 0; i < srcArray.length; i+=2){
+		array.push(srcArray[i]);
+		array2.push(srcArray[i+1]);
+	}
+	return array;
+	return array2;
+}
+
+
+var ogtext = "";
+function splitWord(text,part){
+	if (part == 0){
+		ogtext = text;
+		text = text.substring(0, text.indexOf(' '));
+		if (text != ""){return text;}
+		else{return ogtext;}
+	}
+	if (part == 1){
+		text = text.substring(text.indexOf(' ') + 1);
+		return text;
+	}
+}
+
+function wrapText(text, x, y, maxWidth, lineHeight,stroke) {
+	var words = text.split(' ');var line = '';
+	//ctx.strokeStyle = "white"; ctx.lineWidth = 3;
+	for(var n = 0; n < words.length; n++) {
+		var testLine = line + words[n] + ' ';var metrics = ctx.measureText(testLine);var testWidth = metrics.width;
+		if (testWidth > maxWidth && n > 0) {
+			if (stroke == "ON"){ctx.strokeText(line, x, y);}
+			ctx.fillText(line, x, y);
+			line = words[n] + ' ';y += lineHeight;
+		}
+		else {line = testLine;}} if (stroke == "ON"){ctx.strokeText(line, x, y);} ctx.fillText(line, x, y);
+}
+
+window.addEventListener("keydown", checkKeyPressed, false);var sptArray = []; var sptArray2 = []; var difArray = [];var guiA = [];var sptout = "";var triggerclear = 0;var guifontsize = 20;
+window.addEventListener("keyup", checkKeyReleased, false);
+
+var arrayInsert = "Array";
+var kmap = ["16","C2"];
+function checkKeyPressed(evt) {
+	for (let i = 0; i < kmap.length; i+=2){
+		if (evt.keyCode == kmap[i]){
+			ksel=kmap[i+1]; knum=kArray.indexOf(ksel)-31; ksA.push(knum); ksAT.push(25); 
+			fxA.push(new fxtrail(knum)); 
+			if (knum>=0){for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(275+(knum-12)*25.2,290+(knum-12)*25.2),255,1));}}
+			else{for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(280+(-1*knum-11.5)*25.2,290+(-1*knum-11.5)*25.2),255,2));}}
+			if (ksel.length==2){var audio = new Audio('piano/' + ksel + '.mp3');}
+			else{var audio = new Audio('piano/' + ksel.charAt(0) + "S" + ksel.charAt(2) + '.mp3');}
+			audio.play();
+		}
+	}
+	
+	if (guion == 1){
+		if (evt.keyCode == "87"){guiA.push("W");} if (evt.keyCode == "66"){guiA.push("B");}
+		
+		if (evt.keyCode == "67"){guiA = []; sptArray = []; sptArray2 = [];}
+		
+		if (evt.keyCode == "65"){guiA.push("A");} if (evt.keyCode == "86"){guiA.push("V");}if (evt.keyCode == "68"){guiA.push("D");}if (evt.keyCode == "88"){guiA.push("X");}if (evt.keyCode == "89"){guiA.push("Y");}if (evt.keyCode == "84"){guiA.push("T");}if (evt.keyCode == "73"){guiA.push("I");}if (evt.keyCode == "83"){guiA.push("S");}if (evt.keyCode == "49"){guiA.push("1");}if (evt.keyCode == "50"){guiA.push("2");}if (evt.keyCode == "51"){guiA.push("3");}if (evt.keyCode == "38"){guifontsize+=1;}if (evt.keyCode == "40"){guifontsize-=1;}
+		if (guiA[0] == "S"){sptout = "";if (guiA[1] == "1"){for (var i = 1; i < 26; i++){if (i < 10){sptout += '<img style="display:none; visibility:hidden;" src="anim/placeholder/000' + String(i) + '.png" >';}else {sptout += '<img style="display:none; visibility:hidden;" src="anim/placeholder/00' + String(i) + '.png" >';}}triggerclear = 1; copytoclipboard(sptout);}if (guiA[1] == "2"){for (var i = 1; i < 51; i++){if (i < 10){sptout += '<img style="display:none; visibility:hidden;" src="anim/placeholder/000' + String(i) + '.png" >';}else {sptout += '<img style="display:none; visibility:hidden;" src="anim/placeholder/00' + String(i) + '.png" >';}}triggerclear = 1; copytoclipboard(sptout);}if (guiA[1] == "3"){for (var i = 1; i < 100; i++){if (i < 10){sptout += '<img style="display:none; visibility:hidden;" src="anim/placeholder/000' + String(i) + '.png" >';}else {sptout += '<img style="display:none; visibility:hidden;" src="anim/placeholder/00' + String(i) + '.png" >';}}triggerclear = 1; copytoclipboard(sptout);}}
+		if (guiA[0] == "I"){
+			sptArray.push(canvasX);sptArray.push(canvasY);
+			if (guiA[1] == "I"){
+				sptArray.push(canvasX);sptArray.push(canvasY);
+				triggerclear = 1;sptout = 'ctx.drawImage(Image,' + String(sptArray[0]) + ',' + String(sptArray[1]) + '+' + String(stateM) + '-state,' + String(Math.round(sptArray[2] - sptArray[0])) + ',' + String(Math.round(sptArray[3] - sptArray[1])) + ');';copytoclipboard(sptout);
+				if (guiA[2] == "S"){sptout = 'Image.src = ".png";'; sptout+='\n\t\tctx.drawImage(Image,' + String(sptArray[0]) + ',' + String(sptArray[1]) + '+' + String(stateM) + '-state,' + String(Math.round(sptArray[2] - sptArray[0])) + ',' + String(Math.round(sptArray[3] - sptArray[1])) + ');'; copytoclipboard(sptout);}
+			}
+		}
+		
+		if (guiA[0] == "T" && guiA[1] == "T"){
+			sptArray.push(canvasX);sptArray.push(canvasY);triggerclear = 1;sptout = 'ctx.font = "700 ' + String(guifontsize) + 'px Arial"; ctx.fillStyle = "black"; ctx.textAlign = "center";';
+			sptout += '\n\t\tctx.fillText("This is sample text",' + String(sptArray[0]) + ',' + sptArray[1] + '-state+' + String(stateM) + ');';copytoclipboard(sptout);
+		}
+		
+		if (guiA[0] == "T" && guiA[1] == "S"){
+			sptout='ctx.strokeStyle = "black"; ctx.lineWidth = 2;'; copytoclipboard(sptout); guiA = []; triggerclear = 1;
+		}
+		
+		if (guiA[0] == "T" && guiA[1] == "W"){
+			sptArray.push(canvasX);sptArray.push(canvasY);
+			triggerclear = 1;
+			sptout = 'ctx.font = "700 ' + String(guifontsize) + 'px Arial"; ctx.fillStyle = "black"; ctx.textAlign = "center";';
+			sptout += '\n\t\twrapText("This is Sample Text that should be tested okay this is text that needs to be tested.", ' + String(sptArray[0]) + ',' + String(sptArray[1]) + '+' + String(stateM) + '-state,400,' + String(guifontsize+5) + ',"OFF");'; 
+			copytoclipboard(sptout);
+			
+			if (guiA[2] == "D"){
+				sptArray2.push(canvasX);
+				if (guiA[3] == "D"){
+				sptArray2.push(canvasX); sptout = 'ctx.font = "700 ' + String(guifontsize) + 'px Arial"; ctx.fillStyle = "black"; ctx.textAlign = "center";';sptout += '\n\t\twrapText("This is Sample Text that should be tested okay this is text that needs to be tested.", ' + String(((sptArray2[1]+sptArray2[0])/2).toFixed(0)) + ',' + String(sptArray[1]) + '+' + String(stateM) + '-state,' + String(Math.abs(sptArray2[1]-sptArray2[0])) + ',' + String(guifontsize+5) + ',"OFF");'; 
+				copytoclipboard(sptout); triggerclear = 1;
+				}
+			}
+		}
+		if (guiA[0] == "M"){sptout=".toLocaleString('en-US')"; copytoclipboard(sptout); triggerclear=1;}
+		if (guiA[0] == "D"){sptArray.push(canvasX);sptArray.push(canvasY);if (guiA[1] == "X"){sptArray.push(canvasX);sptArray.push(canvasY);sptout = String(Math.abs(sptArray[2] - sptArray[0])); copytoclipboard(sptout);triggerclear = 1;}if (guiA[1] == "Y"){sptArray.push(canvasX);sptArray.push(canvasY);sptout = String(Math.abs(sptArray[3] - sptArray[1])); copytoclipboard(sptout);triggerclear = 1;}if (guiA[1] == "D"){sptArray.push(canvasX);sptArray.push(canvasY);sptout = String(Math.abs(Math.round(sptArray[2] - sptArray[0])/2));sptout += "," + String(Math.round(Math.abs(sptArray[3] - sptArray[1])/2));copytoclipboard(sptout);triggerclear = 1;}}
+		if (guiA[0] == "B"){sptArray.push(canvasX); sptArray.push(canvasY);if (guiA[1] == "B"){sptArray.push(canvasX); sptArray.push(canvasY);sptout = "if (canvasX > " + String(sptArray[0]) + " && canvasX < " + String(sptArray[2]) + " && canvasY > " + String(sptArray[1]) + " && canvasY < " + String(sptArray[3]) + "){}";copytoclipboard(sptout); triggerclear = 1;}if (guiA[1] == "V"){sptArray.push(canvasX); sptArray.push(canvasY);sptout = "&& canvasX > " + String(sptArray[0]) + " && canvasX < " + String(sptArray[2]) + " && canvasY > " + String(sptArray[1]) + " && canvasY < " + String(sptArray[3]);copytoclipboard(sptout); triggerclear = 1;}}
+		if (guiA[0] == "A"){sptout = 'animplayer(1,"anim//","smooth",0.6,25,0,' + String(stateM) + '-state,800,400);'; copytoclipboard(sptout); triggerclear = 1;}
+		if (guiA[0] == "A" && guiA[1] == "A"){sptout = 'boxArray.push(new box(state,scene,canvasX,canvasY,0.3));'; copytoclipboard(sptout); triggerclear = 1;}
+		if (guiA[0] == "A" && guiA[1] == "A" && guiA[2] == "A"){sptout='ctx.strokeStyle = "black"; ctx.lineWidth = 2;'; copytoclipboard(sptout); triggerclear = 1;}
+		if (guiA[0] == "A" && guiA[1] == "A" && guiA[2] == "A" && guiA[3] == "A"){sptout='for (let i = 0; i < 2; i++){for (let z = 0; z < 2; z++){'; copytoclipboard(sptout); triggerclear = 1;}
+		if (guiA[0] == "A" && guiA[1] == "A" && guiA[2] == "A" && guiA[3] == "A" && guiA[4] == "A"){sptout='ctx.shadowColor = "black"; ctx.shadowBlur = 10;'; copytoclipboard(sptout); guiA = []; triggerclear = 1;}
+		if (guiA[0] == "W" && guiA[1] == "1"){
+			sptArray.push(canvasX); sptArray.push(canvasY);
+			console.log(sptArray); 
+			if (guiA[4] == "1"){
+			
+			}
+		}
+	}	
+}
+function checkKeyReleased(evt) {
+	if (evt.keyCode == "39"){moveRight=0;}
+	if (evt.keyCode == "37"){moveLeft=0;}
+}
+
+</script>
+<p class="a" id = "textprint" value = ""></p>
+<p class="a" id = "demo1" value = ""></p>
+<p class="a" id = "demo2" value = ""></p>
+
+<img id="outline"  src="outline.png" hidden>
+<img id="BGimg"  src="BG.png" hidden>
+<img id="bkey"  src="bkey.png" hidden>
+<img id="wkey"  src="wkey.png" hidden>
+<img id="bkeyS"  src="bkeyS.png" hidden>
+<img id="wkeyS"  src="wkeyS.png" hidden>
+
+<img id="fspeck"  src="fx/speck.png" hidden>
+<img id="fspeckD"  src="fx/speckD.png" hidden>
+
+<img src="fx/smoke/1.png" hidden>
+<img src="fx/smoke/2.png" hidden>
+<img src="fx/smoke/3.png" hidden>
+<img src="fx/smoke/4.png" hidden>
+<img src="fx/smoke/5.png" hidden>
+<img src="fx/smoke/6.png" hidden>
+<img src="fx/smoke/7.png" hidden>
+<img src="fx/smoke/8.png" hidden>
+<img src="fx/smoke/9.png" hidden>
+<img src="fx/smoke/10.png" hidden>
+<img src="fx/smoke/11.png" hidden>
+<img src="fx/smoke/12.png" hidden>
+<img src="fx/smoke/13.png" hidden>
+<img src="fx/smoke/14.png" hidden>
+<img src="fx/smoke/15.png" hidden>
+
+
+<source src="piano/C4.mp3" type="audio/mp3">
+<source src="piano/D4.mp3" type="audio/mp3">
+<source src="piano/E4.mp3" type="audio/mp3">
+<source src="piano/F4.mp3" type="audio/mp3">
+<source src="piano/G4.mp3" type="audio/mp3">
+<source src="piano/A4.mp3" type="audio/mp3">
+<source src="piano/B4.mp3" type="audio/mp3">
+</html> 
+
+
+
+
+
+
+
+
+
+
+
+
+
