@@ -118,9 +118,9 @@ if (canvasY>259){
 		}
 	}}
 	
-	ksel = kArray[31+knum]; ksA.push(knum); ksAT.push(15);
-	if (knum>=0){for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(275+(knum-12)*25.2,290+(knum-12)*25.2),255,1));}}
-	else{for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(280+(-1*knum-11.5)*25.2,290+(-1*knum-11.5)*25.2),255,2));}}
+	ksel = kArray[31+knum]; ksA.push(knum); ksAT.push(15); fxA.push(new fxtrail(knum)); 
+	//if (knum>=0){for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(275+(knum-12)*25.2,290+(knum-12)*25.2),255,1));}}
+	//else{for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(280+(-1*knum-11.5)*25.2,290+(-1*knum-11.5)*25.2),255,2));}}
 	if (knum>=0){var audio = new Audio('piano/' + ksel + '.mp3');}
 	else{var audio = new Audio('piano/' + ksel.charAt(0) + "S" + ksel.charAt(2) + '.mp3');}
 	audio.play();
@@ -128,17 +128,6 @@ if (canvasY>259){
 
 nodown = 0;
 }//End clickfunc
-
-var block = function(x,y,w,h) {
-	this.x = x;
-	this.y = y; 
-	this.w = w; 
-	this.h = h; 
-}
-block.prototype.draw = function() {
-
-}
-
 var fxspeck = function(x,y,type) {
 	this.id = specA.length; 
 	
@@ -175,22 +164,22 @@ var fxtrail = function(key) {
 	this.fImage = new Image();
 }
 fxtrail.prototype.draw = function() {
-	if (this.key!=0&&this.timer <= 14){this.timer++;}
+	if (this.key!=0&&this.timer <= 14){this.timer+=0.5;}
 	if (this.timer>14){this.timer=0; this.key=0;}
 	
 	if (this.timer>0){
 		if (this.key>=0){
-			this.fImage.src = "fx/smoke/" + String(this.timer) + ".png";
+			this.fImage.src = "fx/smoke/" + Math.round(this.timer) + ".png";
 			ctx.drawImage(this.fImage,3+25.2*(this.key-12),0,800,400);
 		}
 		else{
-			this.fImage.src = "fx/smoke/" + String(this.timer) + ".png";
+			this.fImage.src = "fx/smoke/" + Math.round(this.timer) + ".png";
 			ctx.drawImage(this.fImage,123+25*(-1*this.key-12),0,500,400);
 		}
 	}
 }
 var fxA = [];
-//fxA.push(new fxtrail(0));
+fxA.push(new fxtrail(0));
 
 var knum = 0; var ksel = ""; var ksA = []; var ksAT = []; var ksTimer=0;
 var kArray = ["DS6","CS6",
@@ -405,7 +394,7 @@ window.addEventListener("keydown", checkKeyPressed, false);var sptArray = []; va
 window.addEventListener("keyup", checkKeyReleased, false);
 
 var arrayInsert = "Array";
-var kmap = ["16","C2"];
+var kmap = ["67","C2"];
 function checkKeyPressed(evt) {
 	for (let i = 0; i < kmap.length; i+=2){
 		if (evt.keyCode == kmap[i]){
@@ -513,6 +502,22 @@ function checkKeyReleased(evt) {
 <img src="fx/smoke/15.png" hidden>
 
 
+<source src="piano/C6.mp3" type="audio/mp3">
+<source src="piano/D6.mp3" type="audio/mp3">
+<source src="piano/E6.mp3" type="audio/mp3">
+<source src="piano/F6.mp3" type="audio/mp3">
+<source src="piano/G6.mp3" type="audio/mp3">
+<source src="piano/A6.mp3" type="audio/mp3">
+<source src="piano/B6.mp3" type="audio/mp3">
+
+<source src="piano/C5.mp3" type="audio/mp3">
+<source src="piano/D5.mp3" type="audio/mp3">
+<source src="piano/E5.mp3" type="audio/mp3">
+<source src="piano/F5.mp3" type="audio/mp3">
+<source src="piano/G5.mp3" type="audio/mp3">
+<source src="piano/A5.mp3" type="audio/mp3">
+<source src="piano/B5.mp3" type="audio/mp3">
+
 <source src="piano/C4.mp3" type="audio/mp3">
 <source src="piano/D4.mp3" type="audio/mp3">
 <source src="piano/E4.mp3" type="audio/mp3">
@@ -520,6 +525,54 @@ function checkKeyReleased(evt) {
 <source src="piano/G4.mp3" type="audio/mp3">
 <source src="piano/A4.mp3" type="audio/mp3">
 <source src="piano/B4.mp3" type="audio/mp3">
+
+<source src="piano/C3.mp3" type="audio/mp3">
+<source src="piano/D3.mp3" type="audio/mp3">
+<source src="piano/E3.mp3" type="audio/mp3">
+<source src="piano/F3.mp3" type="audio/mp3">
+<source src="piano/G3.mp3" type="audio/mp3">
+<source src="piano/A3.mp3" type="audio/mp3">
+<source src="piano/B3.mp3" type="audio/mp3">
+
+<source src="piano/C2.mp2" type="audio/mp2">
+<source src="piano/D2.mp2" type="audio/mp2">
+<source src="piano/E2.mp2" type="audio/mp2">
+<source src="piano/F2.mp2" type="audio/mp2">
+<source src="piano/G2.mp2" type="audio/mp2">
+<source src="piano/A2.mp2" type="audio/mp2">
+<source src="piano/B2.mp2" type="audio/mp2">
+
+<source src="piano/CS3.mp3" type="audio/mp3">
+<source src="piano/DS3.mp3" type="audio/mp3">
+<source src="piano/ES3.mp3" type="audio/mp3">
+<source src="piano/FS3.mp3" type="audio/mp3">
+<source src="piano/GS3.mp3" type="audio/mp3">
+<source src="piano/AS3.mp3" type="audio/mp3">
+<source src="piano/BS3.mp3" type="audio/mp3">
+
+<source src="piano/CS4.mp4" type="audio/mp4">
+<source src="piano/DS4.mp4" type="audio/mp4">
+<source src="piano/ES4.mp4" type="audio/mp4">
+<source src="piano/FS4.mp4" type="audio/mp4">
+<source src="piano/GS4.mp4" type="audio/mp4">
+<source src="piano/AS4.mp4" type="audio/mp4">
+<source src="piano/BS4.mp4" type="audio/mp4">
+
+<source src="piano/CS5.mp5" type="audio/mp5">
+<source src="piano/DS5.mp5" type="audio/mp5">
+<source src="piano/ES5.mp5" type="audio/mp5">
+<source src="piano/FS5.mp5" type="audio/mp5">
+<source src="piano/GS5.mp5" type="audio/mp5">
+<source src="piano/AS5.mp5" type="audio/mp5">
+<source src="piano/BS5.mp5" type="audio/mp5">
+
+<source src="piano/CS6.mp6" type="audio/mp6">
+<source src="piano/DS6.mp6" type="audio/mp6">
+<source src="piano/ES6.mp6" type="audio/mp6">
+<source src="piano/FS6.mp6" type="audio/mp6">
+<source src="piano/GS6.mp6" type="audio/mp6">
+<source src="piano/AS6.mp6" type="audio/mp6">
+<source src="piano/BS6.mp6" type="audio/mp6">
 </html> 
 
 
