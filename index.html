@@ -118,16 +118,36 @@ if (canvasY>259){
 		}
 	}}
 	
-	ksel = kArray[31+knum]; ksA.push(knum); ksAT.push(15); fxA.push(new fxtrail(knum)); 
-	//if (knum>=0){for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(275+(knum-12)*25.2,290+(knum-12)*25.2),255,1));}}
-	//else{for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(280+(-1*knum-11.5)*25.2,290+(-1*knum-11.5)*25.2),255,2));}}
-	if (knum>=0){var audio = new Audio('piano/' + ksel + '.mp3');}
-	else{var audio = new Audio('piano/' + ksel.charAt(0) + "S" + ksel.charAt(2) + '.mp3');}
-	audio.play();
+	ksel = kArray[31+knum]; ksA.push(knum); ksAT.push(15); 
+	
+	if (ntA[currn].note==ksel||ntA[currn].note2==ksel){	
+		if (knum>=0){for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(275+(knum-12)*25.2,290+(knum-12)*25.2),255,1));}}
+		else{for (let i = 0; i < randInt(30,60); i++){specA.push(new fxspeck(randInt(280+(-1*knum-11.5)*25.2,290+(-1*knum-11.5)*25.2),255,2));}}
+		
+		if (knum>=0){audio = new Audio('piano/' + ksel + '.mp3');}
+		else{audio = new Audio('piano/' + ksel.charAt(0) + "S" + ksel.charAt(2) + '.mp3');}
+		audio.play(); fxA.push(new fxtrail(knum));
+		
+		if (ntA[currn].note2!=""){
+			ksel2 = kArray[31+ntA[currn].knum2];
+			
+			if (ksel==ksel2){ksel2 = kArray[31+ntA[currn].knum];}
+			
+			console.log(ksel2);
+
+			if (kArray.indexOf(ksel2)>=0){audio = new Audio('piano/' + ksel2 + '.mp3');}
+			else{audio = new Audio('piano/' + ksel2.charAt(0) + "S" + ksel2.charAt(2) + '.mp3');}
+			audio.play();
+		}
+		
+		stateM-=(ntA[currn+1].y-ntA[currn].y); currn++; 
+	}
 }
 
 nodown = 0;
 }//End clickfunc
+
+{//FX----------------------------------------------------------------------------
 var fxspeck = function(x,y,type) {
 	this.id = specA.length; 
 	
@@ -156,8 +176,6 @@ fxspeck.prototype.draw = function() {
 	}
 }
 var specA = [];
-//for (let i = 0; i < 1000; i++){specA.push(new fxspeck());}
-
 var fxtrail = function(key) {
 	this.key = key; 
 	this.timer = 0; 
@@ -180,8 +198,9 @@ fxtrail.prototype.draw = function() {
 }
 var fxA = [];
 fxA.push(new fxtrail(0));
-
-var knum = 0; var ksel = ""; var ksA = []; var ksAT = []; var ksTimer=0;
+}
+{//KEYS----------------------------------------------------------------------------
+var knum = 0; var ksel = ""; var ksel2 = ""; var ksA = []; var ksAT = []; var ksTimer=0;
 var kArray = ["DS6","CS6",
 			  "","AS5","GS5","FS5","","DS5","CS5",
 			  "","AS4","GS4","FS4","","DS4","CS4",
@@ -192,19 +211,220 @@ var kArray = ["DS6","CS6",
 			  "C4","D4","E4","F4","G4","A4","B4",
 			  "C5","D5","E5","F5","G5","A5","B5",
 			  "C6","D6","E6","F6","G6","A6","B6"];
-			  
+}
+var noteB = function(note,ry,note2) {
+	this.note = note;
+	this.knum = kArray.indexOf(this.note)-31;
+	this.id=ntA.length; 
+	this.hit=0; this.hTimer=0;
+	this.space=30;
+	this.ry = ry;
+	this.y = ry; for (let i = 0; i < ntA.length; i++){this.y+=ntA[i].ry;}
+	
+	this.note2 = note2;
+	this.knum2 = kArray.indexOf(this.note2)-31;
+}
+noteB.prototype.draw = function() {
+	if (this.hit==1){ctx.globalAlpha=1-this.hTimer/100;}
+	else{
+		if (200-this.y-state>=0){
+			ctx.globalAlpha=(200-this.y-state)/200;
+			//ctx.globalAlpha=1;
+		}
+		else{ctx.globalAlpha=0;}
+	}
+	
+	if (this.knum>=0){ctx.fillStyle = "cyan";}
+	else{ctx.fillStyle = "#00adff";}
+	
+	if (this.knum>=0){ctx.drawImage(horimg,0,210-this.y-state,800,13*2/3);}
+	else{ctx.drawImage(horimg2,0,210-this.y-state,800,13*2/3);}
+	
+	if (this.knum>=0){
+		ctx.drawImage(noteWimg,371+(this.knum-16)*25,200-this.y-state,50*2/3,48*2/3);
+		ctx.font = "700 14px Verdana"; ctx.fillStyle = "black"; ctx.textAlign = "center";
+		ctx.fillText(this.note,387+(this.knum-16)*25,221-this.y-state);
+	}
+	else{
+		ctx.drawImage(noteBimg,373+16+(-1*this.knum-16)*25,200-this.y-state,41*2/3,48*2/3);
+		ctx.font = "700 12px Verdana"; ctx.fillStyle = "black"; ctx.textAlign = "center";
+		ctx.fillText(this.note.charAt(0),386+16+(-1*this.knum-16)*25,216.5-this.y-state);
+		ctx.font = "700 10px Verdana"; ctx.fillStyle = "black"; ctx.textAlign = "center";
+		ctx.fillText("#",386.5+16+(-1*this.knum-16)*25,225.5-this.y-state);
+	}
+	
+	if (this.note2!=""){
+		if (this.knum2<0){
+			ctx.drawImage(noteBimg,373+16+(-1*this.knum2-16)*25,200-this.y-state,41*2/3,48*2/3);
+			ctx.font = "700 12px Verdana"; ctx.fillStyle = "black"; ctx.textAlign = "center";
+			ctx.fillText(this.note2.charAt(0),386+16+(-1*this.knum2-16)*25,216.5-this.y-state);
+			ctx.font = "700 10px Verdana"; ctx.fillStyle = "black"; ctx.textAlign = "center";
+			ctx.fillText("#",386.5+16+(-1*this.knum2-16)*25,225.5-this.y-state);
+		}
+		if (this.knum2>=0){
+			ctx.drawImage(noteWimg,371+(this.knum2-16)*25,200-this.y-state,50*2/3,48*2/3);
+			ctx.font = "700 14px Verdana"; ctx.fillStyle = "black"; ctx.textAlign = "center";
+			ctx.fillText(this.note2,387+(this.knum2-16)*25,221-this.y-state);
+		}
+	}
+	
+	ctx.globalAlpha=1;
+	
+	if (200-this.y-state>200){this.hit=1;}
+	if (this.hit==1){
+		if (this.hTimer<100){this.hTimer+=10;}
+	}
+}
+var ntA = [];
+var track = 2;
+
+{//Mozart Piano Concerto 23 Mov 2 Ending - 1
+if (track == 1){
+ntA.push(new noteB("A3"));
+ntA.push(new noteB("A4"));
+ntA.push(new noteB("CS4"));
+ntA.push(new noteB("CS5"));
+ntA.push(new noteB("A3"));
+ntA.push(new noteB("A4"));
+ntA.push(new noteB("FS3"));
+ntA.push(new noteB("FS4"));
+ntA.push(new noteB("CS3"));
+ntA.push(new noteB("CS4"));
+ntA.push(new noteB("D3"));
+
+ntA.push(new noteB("FS3"));
+ntA.push(new noteB("FS4"));
+ntA.push(new noteB("A3"));
+ntA.push(new noteB("A4"));
+ntA.push(new noteB("FS3"));
+ntA.push(new noteB("FS4"));
+ntA.push(new noteB("D3"));
+ntA.push(new noteB("D4"));
+ntA.push(new noteB("A2"));
+ntA.push(new noteB("A3"));
+ntA.push(new noteB("B2"));
+
+ntA.push(new noteB("D3"));
+ntA.push(new noteB("D4"));
+ntA.push(new noteB("CS3"));
+ntA.push(new noteB("CS4"));
+ntA.push(new noteB("B2"));
+ntA.push(new noteB("B3"));
+ntA.push(new noteB("A2"));
+ntA.push(new noteB("A3"));
+ntA.push(new noteB("GS2"));
+ntA.push(new noteB("GS3"));
+ntA.push(new noteB("CS3"));
+ntA.push(new noteB("CS4"));
+}
+}
+
+{//Moonlight Sonata - 2
+if (track == 2){
+
+//--
+
+ntA.push(new noteB("CS3",0,"GS3"));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("GS3",50,""));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("GS3",50,""));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("GS3",50,""));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("GS3",50,"B2"));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("GS3",50,""));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("GS3",50,""));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("GS3",50,""));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("A3",50,"A2"));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("A3",50,""));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("A3",50,"FS2"));
+ntA.push(new noteB("D4",20,""));
+ntA.push(new noteB("FS4",20,"")); //0:17
+
+ntA.push(new noteB("GS3",50,"GS2"));
+ntA.push(new noteB("C4",20,""));
+ntA.push(new noteB("FS4",20,""));
+
+ntA.push(new noteB("GS3",50,""));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("GS3",50,"GS2"));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("DS4",20,""));
+
+ntA.push(new noteB("FS3",50,""));
+ntA.push(new noteB("C4",20,""));
+ntA.push(new noteB("DS4",20,"")); //0:24
+
+ntA.push(new noteB("E3",50,"GS2"));
+ntA.push(new noteB("GS3",20,""));
+ntA.push(new noteB("CS4",20,""));
+
+ntA.push(new noteB("GS3",50,""));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("GS3",50,""));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+
+ntA.push(new noteB("GS3",50,"GS4"));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("GS4",20,""));
+ntA.push(new noteB("GS3",20,"GS4"));
 
 
+}
+}
+
+{//Test Track - 3
+if (track == 3){
+ntA.push(new noteB("FS3",0,"GS3"));
+ntA.push(new noteB("CS4",20,""));
+ntA.push(new noteB("E4",20,""));
+}
+}
+
+
+var currn = 0;
 function move() {
 //BG
-ctx.fillStyle = "white";
+ctx.fillStyle = "black";
 ctx.fillRect(0,0,800,400);
 
 ctx.drawImage(BGimg,0,0,800,400);
 
 for (let i = 0; i < 32; i++){ctx.drawImage(wkey,-1+25.05*i,1,800,400);}
 
-if (ksA.length>0){
+if (ksA.length>0){//WHITE KEYS
 	for (let i = 0; i < ksA.length; i++){
 		if (ksA[i]>=0&&ksAT[i]>0){ksAT[i]-=1;}
 		if (ksA[i]>=0&&ksAT[i]>0){
@@ -215,8 +435,7 @@ if (ksA.length>0){
 
 for(var i = 0; i < fxA.length ; i++) {fxA[i].draw();}
 
-
-for (let i = 0; i < 6; i++){
+for (let i = 0; i < 6; i++){//BLACK KEYS
 	ctx.drawImage(bkey,25.1*-3-1+25.1*0+175.7*i,1,800,400);
 	ctx.drawImage(bkey,25.1*-3-1+25.1*1+175.7*i,1,800,400);
 	if (i!=0){ctx.drawImage(bkey,25.1*-3-1+25.1*2+175.7*i,1,800,400);}
@@ -225,7 +444,7 @@ for (let i = 0; i < 6; i++){
 	ctx.drawImage(bkey,25.1*-3-1+25.1*5+175.7*i,1,800,400);
 }
 
-if (ksA.length>0){
+if (ksA.length>0){//BLACK KEY SELECTED
 	for (let i = 0; i < ksA.length; i++){
 		if (ksA[i]<0&&ksAT[i]>0){ksAT[i]-=1;}
 		if (ksA[i]<0&&ksAT[i]>0){
@@ -234,9 +453,11 @@ if (ksA.length>0){
 	}
 }
 
-if (ksA.length>0){
+if (ksA.length>0){//REMOVE FINISHED KEYS
 	if (ksAT[0]==0){ksAT.shift(); ksA.shift();}
 }
+
+for(var i = 0; i < ntA.length ; i++) {ntA[i].draw();}
 
 //Labels
 ctx.font = "700 12px Verdana"; ctx.fillStyle = "black"; ctx.textAlign = "center";
@@ -249,8 +470,8 @@ ctx.fillText("C6",287+100+175.5*2,389);
 for(var i = 0; i < specA.length ; i++) {specA[i].draw();}
 
 
-//if (state < stateM){if (stateM - state <= 1){state = stateM;}else{state+=(stateM-state)/(5);}}	
-//if (state > stateM){if (state - stateM <= 1){state = stateM;}else{state-=(state-stateM)/(5);}}
+if (state < stateM){if (stateM - state <= 1){state = stateM;}else{state+=(stateM-state)/(5);}}	
+if (state > stateM){if (state - stateM <= 1){state = stateM;}else{state-=(state-stateM)/(5);}}
 
 ctx.drawImage(outline,0,0,800,400);
 
@@ -289,7 +510,7 @@ if (guion == 1){
 var demo1ext = ""; var demo2ext = "";
 function outprint() {
 	//Demo 1 & 2
-	demo1ext=" |knum: " + knum + " |ksel: " + ksel + " |ksA: " + ksA + " |ksAT: " + ksAT;
+	demo1ext=" |state: " + stateM + " |knum: " + knum + " |ksel: " + ksel + " |ksA: " + ksA + " |ksAT: " + ksAT;
 	if (guion == 1){document.getElementById("demo1").innerHTML = "|X: " + canvasX + "| Y: " + canvasY + "| Scene: " + scene; document.getElementById("demo1").innerHTML += demo1ext;}
 	if (guion == 1){document.getElementById("demo2").innerHTML = ""; document.getElementById("demo2").innerHTML += demo2ext;}
 	
@@ -458,7 +679,7 @@ function checkKeyPressed(evt) {
 		if (guiA[0] == "A" && guiA[1] == "A" && guiA[2] == "A" && guiA[3] == "A" && guiA[4] == "A"){sptout='ctx.shadowColor = "black"; ctx.shadowBlur = 10;'; copytoclipboard(sptout); guiA = []; triggerclear = 1;}
 		if (guiA[0] == "W" && guiA[1] == "1"){
 			sptArray.push(canvasX); sptArray.push(canvasY);
-			console.log(sptArray); 
+			
 			if (guiA[4] == "1"){
 			
 			}
@@ -474,6 +695,13 @@ function checkKeyReleased(evt) {
 <p class="a" id = "textprint" value = ""></p>
 <p class="a" id = "demo1" value = ""></p>
 <p class="a" id = "demo2" value = ""></p>
+
+<img id="horimg" src="horizon.png" hidden>
+<img id="horimg2" src="horizon2.png" hidden>
+
+
+<img id="noteBimg" src="note/noteB.png" hidden>
+<img id="noteWimg" src="note/noteW.png" hidden>
 
 <img id="outline"  src="outline.png" hidden>
 <img id="BGimg"  src="BG.png" hidden>
